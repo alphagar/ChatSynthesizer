@@ -106,6 +106,33 @@ export class LocalStorageManager {
   }
 
   /**
+   * 중복되지 않는 기본 모델 그룹 제목을 생성합니다
+   */
+  static generateUniqueGroupTitle(baseName: string = 'AI 모델 그룹'): string {
+    let counter = 1
+    let candidateTitle = baseName
+
+    // 기본 이름이 중복되지 않으면 바로 반환
+    if (!this.isModelGroupTitleDuplicate(candidateTitle)) {
+      return candidateTitle
+    }
+
+    // 숫자를 붙여가며 중복되지 않는 이름 찾기
+    while (this.isModelGroupTitleDuplicate(candidateTitle)) {
+      candidateTitle = `${baseName} ${counter}`
+      counter++
+      
+      // 무한 루프 방지 (실제로는 발생할 가능성 거의 없음)
+      if (counter > 9999) {
+        candidateTitle = `${baseName} ${Date.now()}`
+        break
+      }
+    }
+
+    return candidateTitle
+  }
+
+  /**
    * 채팅 세션들을 저장합니다
    */
   static saveChatSessions(sessions: ChatSession[]): void {

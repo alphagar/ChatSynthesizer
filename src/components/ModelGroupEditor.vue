@@ -240,7 +240,7 @@ const initializeForm = () => {
     }
   } else {
     form.id = generateId()
-    form.title = ''
+    form.title = LocalStorageManager.generateUniqueGroupTitle()
     form.models = []
     form.synthesizer = {
       model: 'openai/gpt-4o',
