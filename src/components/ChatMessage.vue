@@ -16,22 +16,6 @@
         
         <div class="message-meta">
           <n-time :time="message.timestamp" type="relative" />
-          
-          <!-- 모델 응답 토글 버튼 (어시스턴트 메시지이고 modelResponses가 있는 경우) -->
-          <n-button
-            v-if="isAssistant && message.modelResponses && message.modelResponses.length > 0"
-            text
-            size="small"
-            @click="$emit('toggle-responses')"
-          >
-            <template #icon>
-              <n-icon>
-                <chevron-down-outline v-if="!showModelResponses" />
-                <chevron-up-outline v-else />
-              </n-icon>
-            </template>
-            개별 응답 {{ showModelResponses ? '숨기기' : '보기' }}
-          </n-button>
         </div>
       </div>
 
@@ -54,6 +38,22 @@
               {{ modelName }}
             </n-tag>
           </n-space>
+          
+          <!-- 모델 응답 토글 버튼 (어시스턴트 메시지이고 modelResponses가 있는 경우) -->
+          <n-button
+            v-if="isAssistant && message.modelResponses && message.modelResponses.length > 0"
+            text
+            size="small"
+            @click="$emit('toggle-responses')"
+          >
+            <template #icon>
+              <n-icon>
+                <chevron-down-outline v-if="!showModelResponses" />
+                <chevron-up-outline v-else />
+              </n-icon>
+            </template>
+            개별 응답 {{ showModelResponses ? '숨기기' : '보기' }}
+          </n-button>
         </div>
 
         <!-- 개별 모델 응답들 -->
