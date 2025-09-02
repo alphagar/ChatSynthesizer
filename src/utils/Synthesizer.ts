@@ -54,15 +54,17 @@ export class Synthesizer {
     
     try {
       const response = await this.api.chatCompletion({
-        model: config.model,
+        model: config.model.modelName,
         messages: [
           { role: 'system', content: this.getSystemPrompt('union') },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.3
+        temperature: config.model.parameters.temperature ?? 0.3,
+        ...this.extractModelParameters(config.model.parameters)
       })
 
-      return response.choices[0]?.message.content || "통합된 응답을 생성할 수 없습니다."
+      const content = response.choices[0]?.message.content
+      return (typeof content === 'string' ? content : "통합된 응답을 생성할 수 없습니다.")
     } catch (error) {
       console.error('Union synthesis failed:', error)
       return this.fallbackSynthesis(responses, 'union')
@@ -82,15 +84,17 @@ export class Synthesizer {
     
     try {
       const response = await this.api.chatCompletion({
-        model: config.model,
+        model: config.model.modelName,
         messages: [
           { role: 'system', content: this.getSystemPrompt('intersection') },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.2
+        temperature: config.model.parameters.temperature ?? 0.2,
+        ...this.extractModelParameters(config.model.parameters)
       })
 
-      return response.choices[0]?.message.content || "공통 내용을 찾을 수 없습니다."
+      const content = response.choices[0]?.message.content
+      return (typeof content === 'string' ? content : "공통 내용을 찾을 수 없습니다.")
     } catch (error) {
       console.error('Intersection synthesis failed:', error)
       return this.fallbackSynthesis(responses, 'intersection')
@@ -109,15 +113,17 @@ export class Synthesizer {
     
     try {
       const response = await this.api.chatCompletion({
-        model: config.model,
+        model: config.model.modelName,
         messages: [
           { role: 'system', content: this.getSystemPrompt('selective') },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.4
+        temperature: config.model.parameters.temperature ?? 0.4,
+        ...this.extractModelParameters(config.model.parameters)
       })
 
-      return response.choices[0]?.message.content || "선별된 응답을 생성할 수 없습니다."
+      const content = response.choices[0]?.message.content
+      return (typeof content === 'string' ? content : "선별된 응답을 생성할 수 없습니다.")
     } catch (error) {
       console.error('Selective synthesis failed:', error)
       return this.fallbackSynthesis(responses, 'selective')
@@ -237,6 +243,27 @@ export class Synthesizer {
     })
 
     return result
+  }
+
+  /**
+   * 모델 파라미터에서 OpenRouter API에 사용할 파라미터만 추출
+   */
+  private extractModelParameters(parameters: Record<string, any>): Record<string, any> {
+    const validParams: Record<string, any> = {}
+    
+    // OpenRouter API에서 지원하는 파라미터들
+    const supportedParams = [
+      'max_tokens', 'top_p', 'top_k', 'frequency_penalty', 
+      'presence_penalty', 'repetition_penalty', 'seed', 'user'
+    ]
+    
+    for (const param of supportedParams) {
+      if (parameters[param] !== undefined && parameters[param] !== null) {
+        validParams[param] = parameters[param]
+      }
+    }
+    
+    return validParams
   }
 
   /**

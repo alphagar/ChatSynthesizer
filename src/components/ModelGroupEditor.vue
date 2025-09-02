@@ -55,14 +55,47 @@
         <!-- 싱크로나이저 탭 -->
         <n-tab-pane name="synthesizer" tab="싱크로나이저">
           <n-space direction="vertical" :size="24">
-            <n-form-item label="싱크로나이저 모델" path="synthesizer.model">
-              <n-select
-                v-model:value="form.synthesizer.model"
-                :options="synthesizerModelOptions"
-                placeholder="싱크로나이저로 사용할 모델을 선택하세요"
-                filterable
+            <!-- 싱크로나이저 모델 설정 -->
+            <div>
+              <n-space justify="space-between" align="center" style="margin-bottom: 16px;">
+                <h3>싱크로나이저 모델</h3>
+                <n-button 
+                  v-if="!form.synthesizer.model" 
+                  type="primary" 
+                  @click="showAddSynthesizerModal = true"
+                >
+                  <template #icon>
+                    <n-icon><add-outline /></n-icon>
+                  </template>
+                  모델 선택
+                </n-button>
+                <n-button 
+                  v-else
+                  type="default" 
+                  @click="showAddSynthesizerModal = true"
+                >
+                  모델 변경
+                </n-button>
+              </n-space>
+
+              <!-- 싱크로나이저 모델 정보 -->
+              <div v-if="!form.synthesizer.model" class="empty-synthesizer">
+                <n-empty description="싱크로나이저 모델을 선택해주세요">
+                  <template #extra>
+                    <n-button type="primary" @click="showAddSynthesizerModal = true">
+                      모델 선택하기
+                    </n-button>
+                  </template>
+                </n-empty>
+              </div>
+
+              <ModelConfigItem 
+                v-else
+                :model="form.synthesizer.model"
+                @update="updateSynthesizerModel"
+                @delete="removeSynthesizerModel"
               />
-            </n-form-item>
+            </div>
 
             <n-form-item label="통합 모드" path="synthesizer.mode">
               <n-radio-group v-model:value="form.synthesizer.mode">
@@ -133,6 +166,11 @@
     <n-modal v-model:show="showAddModelModal" preset="card" title="AI 모델 추가" style="width: 600px;">
       <ModelSelector @select="handleAddModel" @cancel="showAddModelModal = false" />
     </n-modal>
+
+    <!-- 싱크로나이저 모델 선택 모달 -->
+    <n-modal v-model:show="showAddSynthesizerModal" preset="card" title="싱크로나이저 모델 선택" style="width: 600px;">
+      <ModelSelector @select="handleAddSynthesizerModel" @cancel="showAddSynthesizerModal = false" />
+    </n-modal>
   </div>
 </template>
 
@@ -147,7 +185,6 @@ import {
   NTabs,
   NTabPane,
   NIcon,
-  NSelect,
   NRadioGroup,
   NRadio,
   NInputNumber,
@@ -158,8 +195,7 @@ import {
   NEmpty,
   useMessage,
   type FormInst,
-  type FormRules,
-  type SelectOption
+  type FormRules
 } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
 import type { AIModelGroup, AIModelConfig } from '@/types'
@@ -184,13 +220,14 @@ const message = useMessage()
 const formRef = ref<FormInst>()
 const isSaving = ref(false)
 const showAddModelModal = ref(false)
+const showAddSynthesizerModal = ref(false)
 
 const form = reactive({
   id: '',
   title: '',
   models: [] as AIModelConfig[],
   synthesizer: {
-    model: 'openai/gpt-4o',
+    model: null as AIModelConfig | null,
     mode: 'union' as 'union' | 'intersection' | 'selective',
     intersectionThreshold: 2
   }
@@ -212,7 +249,12 @@ const rules: FormRules = {
   'synthesizer.model': [
     {
       required: true,
-      message: '싱크로나이저 모델을 선택해주세요',
+      validator: (rule, value) => {
+        if (!value || !value.modelName) {
+          return Promise.reject('싱크로나이저 모델을 선택해주세요')
+        }
+        return Promise.resolve()
+      },
       trigger: 'change'
     }
   ]
@@ -221,12 +263,7 @@ const rules: FormRules = {
 // Computed
 const isEditing = computed(() => !!props.group)
 
-const synthesizerModelOptions = computed<SelectOption[]>(() => {
-  return POPULAR_MODELS.map(model => ({
-    label: `${model.name} (${model.provider})`,
-    value: model.id
-  }))
-})
+
 
 // Methods
 const initializeForm = () => {
@@ -235,7 +272,8 @@ const initializeForm = () => {
     form.title = props.group.title
     form.models = [...props.group.models]
     form.synthesizer = { 
-      ...props.group.synthesizer,
+      model: props.group.synthesizer.model ? {...props.group.synthesizer.model} : null,
+      mode: props.group.synthesizer.mode,
       intersectionThreshold: props.group.synthesizer.intersectionThreshold ?? 2
     }
   } else {
@@ -243,7 +281,8 @@ const initializeForm = () => {
     form.title = LocalStorageManager.generateUniqueGroupTitle()
     form.models = []
     form.synthesizer = {
-      ...DEFAULT_SYNTHESIZER,
+      model: {...DEFAULT_SYNTHESIZER.model},
+      mode: DEFAULT_SYNTHESIZER.mode,
       intersectionThreshold: DEFAULT_SYNTHESIZER.intersectionThreshold ?? 2
     }
   }
@@ -274,6 +313,25 @@ const removeModel = (index: number) => {
   message.info('모델이 제거되었습니다.')
 }
 
+// 싱크로나이저 모델 관련 함수들
+const handleAddSynthesizerModel = (modelConfig: AIModelConfig) => {
+  form.synthesizer.model = {
+    ...modelConfig,
+    id: generateId()
+  }
+  showAddSynthesizerModal.value = false
+  message.success('싱크로나이저 모델이 설정되었습니다.')
+}
+
+const updateSynthesizerModel = (updatedModel: AIModelConfig) => {
+  form.synthesizer.model = updatedModel
+}
+
+const removeSynthesizerModel = () => {
+  form.synthesizer.model = null
+  message.info('싱크로나이저 모델이 제거되었습니다.')
+}
+
 const handleSave = async () => {
   if (!formRef.value) return
 
@@ -298,7 +356,10 @@ const handleSave = async () => {
       id: form.id,
       title: form.title,
       models: form.models,
-      synthesizer: form.synthesizer,
+      synthesizer: {
+        ...form.synthesizer,
+        model: form.synthesizer.model! // validation에서 이미 확인했으므로 안전
+      },
       createdAt: props.group?.createdAt || now,
       updatedAt: now
     }
@@ -354,6 +415,15 @@ onMounted(() => {
     justify-content: center;
     align-items: center;
     min-height: 200px;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+  }
+
+  .empty-synthesizer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px;
     border: 2px dashed var(--border-color);
     border-radius: 8px;
   }

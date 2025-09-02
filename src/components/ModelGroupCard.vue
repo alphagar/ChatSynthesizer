@@ -49,7 +49,7 @@
         <h4>싱크로나이저:</h4>
         <n-space align="center" :size="12" style="margin-top: 8px;">
           <n-tag type="primary" size="small">
-            {{ group.synthesizer.model }}
+            {{ group.synthesizer.model.modelName }}
           </n-tag>
           <span class="mode-description">{{ getModeDescription(group.synthesizer.mode) }}</span>
           <n-tag 

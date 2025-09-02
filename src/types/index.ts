@@ -62,7 +62,7 @@ export interface AIModelConfig {
 }
 
 export interface SynthesizerConfig {
-  model: string
+  model: AIModelConfig
   mode: 'union' | 'intersection' | 'selective'
   intersectionThreshold?: number // 교집합 모드에서 최소 몇 개의 AI가 언급해야 하는지
 }
@@ -157,7 +157,12 @@ export const VALIDATE_REQUEST_INFO: OpenRouterRequest = {
 
 // 기본 싱크로나이저 설정
 export const DEFAULT_SYNTHESIZER: SynthesizerConfig = {
-  model: 'google/gemini-2.5-pro',
+  model: {
+    id: 'synthesizer-default',
+    modelName: 'google/gemini-2.5-pro',
+    displayName: 'Gemini 2.5 Pro',
+    parameters: { ...DEFAULT_MODEL_PARAMETERS }
+  },
   mode: 'union',
   intersectionThreshold: 2
 } as const
