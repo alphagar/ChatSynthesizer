@@ -52,38 +52,104 @@ export class Synthesizer {
    * 시스템 프롬프트 생성
    */
   private getSystemPrompt(mode: string): string {
-    const basePrompt = "당신은 여러 AI 모델의 응답을 통합하는 전문가입니다. 한국어로 응답해주세요."
+    const basePrompt = `<instruction>
+  <persona_and_role>
+    <persona>You are an AI response synthesis specialist who expertly combines multiple AI model responses.</persona>
+    <goal>Your goal is to create a comprehensive, accurate, and well-structured synthesized response from multiple AI model outputs.</goal>
+    <tone>Your tone should be professional, analytical, and informative.</tone>
+  </persona_and_role>
+
+  <core_instructions>
+    <title>Core Synthesis Instructions</title>
+    <instruction id="1" name="Output Language">
+      <detail>IMPORTANT: Your final synthesized response must be written in Korean (한국어). Always output your final answer in Korean, regardless of the input language.</detail>
+    </instruction>
+    <instruction id="2" name="Analysis Process">
+      <description>Follow these steps for synthesis:</description>
+      <process>
+        <step id="a">
+          <action>Analyze Input Responses</action>
+          <detail>Carefully examine each AI model's response for key information, insights, and perspectives.</detail>
+        </step>
+        <step id="b">
+          <action>Identify Patterns</action>
+          <detail>Find commonalities, differences, and complementary information across responses.</detail>
+        </step>
+        <step id="c">
+          <action>Create Unified Response</action>
+          <detail>Synthesize the information according to the specified mode while maintaining accuracy and coherence.</detail>
+        </step>
+      </process>
+    </instruction>
+  </core_instructions>
+
+  <additional_guidelines>
+    <title>Quality Guidelines</title>
+    <guideline id="1" name="Information Accuracy">
+      <detail>Verify information consistency and highlight any conflicting viewpoints clearly.</detail>
+    </guideline>
+    <guideline id="2" name="Structure and Clarity">
+      <detail>Organize information logically with clear headings, bullet points, and structured formatting for readability.</detail>
+    </guideline>
+    <guideline id="3" name="Completeness">
+      <detail>Ensure all relevant information is included while avoiding unnecessary redundancy.</detail>
+    </guideline>
+  </additional_guidelines>
+</instruction>`
 
     switch (mode) {
       case 'union':
         return `${basePrompt}
 
-합집합 모드에서는 다음 규칙을 따라주세요:
-1. 모든 응답의 정보를 포함하되, 중복되는 내용은 제거하세요
-2. 서로 다른 관점이나 접근법이 있다면 모두 포함하세요
-3. 정보의 정확성을 검증하고, 상충하는 내용이 있다면 명시하세요
-4. 체계적이고 읽기 쉽게 정리하세요`
+<synthesis_mode>
+  <mode_name>Union Mode</mode_name>
+  <description>Combine all available information from multiple AI responses into a comprehensive unified answer.</description>
+  <specific_rules>
+    <rule id="1">Include all valuable information from each response while eliminating redundancy</rule>
+    <rule id="2">Present different perspectives and approaches when they exist</rule>
+    <rule id="3">Verify information accuracy and clearly indicate any conflicting content</rule>
+    <rule id="4">Structure the response systematically for easy reading and understanding</rule>
+    <rule id="5">Prioritize breadth of information while maintaining quality</rule>
+  </specific_rules>
+</synthesis_mode>`
 
       case 'intersection':
         return `${basePrompt}
 
-교집합 모드에서는 다음 규칙을 따라주세요:
-1. 지정된 수 이상의 모델이 공통으로 언급하는 내용만 포함하세요
-2. 공통 내용이 부족하다면 그 사실을 명시하세요
-3. 신뢰성이 높은 핵심 정보에 집중하세요
-4. 간결하고 정확하게 정리하세요`
+<synthesis_mode>
+  <mode_name>Intersection Mode</mode_name>
+  <description>Focus only on information that is commonly mentioned by multiple AI models to ensure high reliability.</description>
+  <specific_rules>
+    <rule id="1">Include only content mentioned by the specified minimum number of models</rule>
+    <rule id="2">Clearly state if insufficient common content is found</rule>
+    <rule id="3">Focus on highly reliable core information with strong consensus</rule>
+    <rule id="4">Present findings concisely and accurately</rule>
+    <rule id="5">Prioritize information quality and consensus over breadth</rule>
+  </specific_rules>
+</synthesis_mode>`
 
       case 'selective':
         return `${basePrompt}
 
-선별 모드에서는 다음 규칙을 따라주세요:
-1. 가장 가치 있고 정확한 정보만 선별하세요
-2. 질문에 가장 직접적으로 답하는 내용을 우선하세요
-3. 불확실하거나 중요도가 낮은 정보는 제외하세요
-4. 실용적이고 유용한 답변을 제공하세요`
+<synthesis_mode>
+  <mode_name>Selective Mode</mode_name>
+  <description>Curate and present only the most valuable, accurate, and relevant information from all responses.</description>
+  <specific_rules>
+    <rule id="1">Select only the highest-quality and most accurate information</rule>
+    <rule id="2">Prioritize content that directly addresses the original question</rule>
+    <rule id="3">Exclude uncertain, low-importance, or questionable information</rule>
+    <rule id="4">Provide practical and actionable answers</rule>
+    <rule id="5">Focus on creating the best possible single response rather than comprehensive coverage</rule>
+  </specific_rules>
+</synthesis_mode>`
 
       default:
-        return basePrompt
+        return `${basePrompt}
+
+<synthesis_mode>
+  <mode_name>Default Mode</mode_name>
+  <description>Standard synthesis combining information from multiple responses.</description>
+</synthesis_mode>`
     }
   }
 
@@ -91,15 +157,31 @@ export class Synthesizer {
    * 합집합 모드 프롬프트 생성
    */
   private createUnionPrompt(responses: ModelResponse[], originalQuestion: string): string {
-    let prompt = `원본 질문: "${originalQuestion}"\n\n`
-    prompt += `다음은 ${responses.length}개의 AI 모델이 제공한 응답들입니다:\n\n`
+    let prompt = `<synthesis_request>
+  <original_question>${originalQuestion}</original_question>
+  
+  <ai_responses count="${responses.length}">
+`
 
     responses.forEach((response, index) => {
-      prompt += `=== ${response.modelName} (${response.modelId}) ===\n`
-      prompt += `${response.content}\n\n`
+      prompt += `    <ai_response model_name="${response.modelName}" model_id="${response.modelId}" index="${index + 1}">
+${response.content}
+    </ai_response>
+`
     })
 
-    prompt += `위 응답들을 합집합 방식으로 통합해주세요. 모든 유용한 정보를 포함하되 중복은 제거하고, 체계적으로 정리해주세요.`
+    prompt += `  </ai_responses>
+  
+  <task>
+    <instruction>Synthesize the above AI responses using union mode methodology.</instruction>
+    <requirements>
+      <requirement>Include all valuable information from each response while eliminating redundancy</requirement>
+      <requirement>Present different perspectives and approaches systematically</requirement>
+      <requirement>Organize the content logically for maximum readability</requirement>
+      <requirement>Remember: Your final response must be in Korean (한국어)</requirement>
+    </requirements>
+  </task>
+</synthesis_request>`
 
     return prompt
   }
@@ -112,15 +194,35 @@ export class Synthesizer {
     originalQuestion: string, 
     threshold: number
   ): string {
-    let prompt = `원본 질문: "${originalQuestion}"\n\n`
-    prompt += `다음은 ${responses.length}개의 AI 모델이 제공한 응답들입니다:\n\n`
+    let prompt = `<synthesis_request>
+  <original_question>${originalQuestion}</original_question>
+  
+  <ai_responses count="${responses.length}">
+`
 
     responses.forEach((response, index) => {
-      prompt += `=== ${response.modelName} (${response.modelId}) ===\n`
-      prompt += `${response.content}\n\n`
+      prompt += `    <ai_response model_name="${response.modelName}" model_id="${response.modelId}" index="${index + 1}">
+${response.content}
+    </ai_response>
+`
     })
 
-    prompt += `위 응답들에서 최소 ${threshold}개 이상의 모델이 공통으로 언급하는 내용만을 추출하여 통합해주세요.`
+    prompt += `  </ai_responses>
+  
+  <task>
+    <instruction>Synthesize the above AI responses using intersection mode methodology.</instruction>
+    <parameters>
+      <threshold>${threshold}</threshold>
+      <description>Only include content mentioned by at least ${threshold} models</description>
+    </parameters>
+    <requirements>
+      <requirement>Extract only information commonly mentioned by the minimum threshold of models</requirement>
+      <requirement>Focus on highly reliable core information with strong consensus</requirement>
+      <requirement>Clearly state if insufficient common content is found</requirement>
+      <requirement>Remember: Your final response must be in Korean (한국어)</requirement>
+    </requirements>
+  </task>
+</synthesis_request>`
 
     return prompt
   }
@@ -129,15 +231,33 @@ export class Synthesizer {
    * 선별 모드 프롬프트 생성
    */
   private createSelectivePrompt(responses: ModelResponse[], originalQuestion: string): string {
-    let prompt = `원본 질문: "${originalQuestion}"\n\n`
-    prompt += `다음은 ${responses.length}개의 AI 모델이 제공한 응답들입니다:\n\n`
+    let prompt = `<synthesis_request>
+  <original_question>${originalQuestion}</original_question>
+  
+  <ai_responses count="${responses.length}">
+`
 
     responses.forEach((response, index) => {
-      prompt += `=== ${response.modelName} (${response.modelId}) ===\n`
-      prompt += `${response.content}\n\n`
+      prompt += `    <ai_response model_name="${response.modelName}" model_id="${response.modelId}" index="${index + 1}">
+${response.content}
+    </ai_response>
+`
     })
 
-    prompt += `위 응답들에서 가장 정확하고 가치 있는 정보만을 선별하여 최고 품질의 답변을 만들어주세요. 질문에 가장 직접적이고 실용적인 답변을 제공해주세요.`
+    prompt += `  </ai_responses>
+  
+  <task>
+    <instruction>Synthesize the above AI responses using selective mode methodology.</instruction>
+    <requirements>
+      <requirement>Select only the highest-quality and most accurate information</requirement>
+      <requirement>Prioritize content that directly addresses the original question</requirement>
+      <requirement>Exclude uncertain, low-importance, or questionable information</requirement>
+      <requirement>Create the most practical and actionable answer possible</requirement>
+      <requirement>Focus on quality over comprehensiveness</requirement>
+      <requirement>Remember: Your final response must be in Korean (한국어)</requirement>
+    </requirements>
+  </task>
+</synthesis_request>`
 
     return prompt
   }
