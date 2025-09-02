@@ -44,6 +44,7 @@ export class OpenRouterAPI {
   async *streamChatCompletion(request: OpenRouterRequest): AsyncGenerator<StreamChunk> {
     const streamRequest = { ...request, stream: true }
     
+    console.log('[*] AI 스트리밍 요청 수행:', streamRequest)
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {

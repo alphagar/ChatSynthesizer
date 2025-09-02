@@ -461,8 +461,7 @@ const saveConversation = async (userContent: string, assistantContent: string, f
     id: generateId(),
     role: 'user',
     content: userContent,
-    timestamp: new Date(),
-    modelResponses: [...streamingResponses.value]
+    timestamp: new Date()
   }
 
   const assistantMessage: ChatMessageType = {
@@ -470,7 +469,8 @@ const saveConversation = async (userContent: string, assistantContent: string, f
     role: 'assistant', 
     content: assistantContent,
     timestamp: new Date(),
-    synthesizedFrom: selectedGroup.value?.models.map(m => m.displayName)
+    synthesizedFrom: selectedGroup.value?.models.map(m => m.displayName),
+    modelResponses: [...streamingResponses.value]
   }
 
   currentMessages.value.push(userMessage, assistantMessage)
