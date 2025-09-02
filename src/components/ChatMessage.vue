@@ -143,13 +143,11 @@ const isAssistant = computed(() => props.message.role === 'assistant')
 
   &.user-message .message-content {
     background: var(--success-color-hover);
-    margin-left: 60px;
     border-radius: 16px 16px 4px 16px;
   }
 
   &.assistant-message .message-content {
     background: var(--card-color);
-    margin-right: 60px;
     border-radius: 16px 16px 16px 4px;
     border: 1px solid var(--border-color);
   }
