@@ -141,3 +141,12 @@ export interface UploadedFile {
   data: string // base64 데이터
   url?: string
 }
+
+// OpenRouter API 유효성 검증에 사용되는 요청 정보
+export const VALIDATE_REQUEST_INFO: OpenRouterRequest = {
+  model: 'google/gemini-2.5-flash-lite',
+  messages: [
+    { role: 'user', content: 'Hello' }
+  ],
+  max_tokens: 1
+} as const

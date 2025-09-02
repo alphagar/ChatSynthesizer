@@ -5,6 +5,7 @@ import type {
   OpenRouterMessage,
   UploadedFile 
 } from '@/types'
+import { VALIDATE_REQUEST_INFO } from '@/types'
 
 export class OpenRouterAPI {
   private apiKey: string
@@ -187,15 +188,7 @@ export class OpenRouterAPI {
    */
   async validateApiKey(): Promise<boolean> {
     try {
-      const testRequest: OpenRouterRequest = {
-        model: 'openai/gpt-3.5-turbo',
-        messages: [
-          { role: 'user', content: 'Hello' }
-        ],
-        max_tokens: 1
-      }
-
-      await this.chatCompletion(testRequest)
+      await this.chatCompletion(VALIDATE_REQUEST_INFO)
       return true
     } catch (error) {
       console.error('API Key validation failed:', error)
