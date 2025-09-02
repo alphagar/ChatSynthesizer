@@ -46,14 +46,36 @@
                   :key="session.id"
                   class="session-item"
                   :class="{ active: currentSessionId === session.id }"
-                  @click="loadSession(session.id)"
                 >
-                  <div class="session-info">
+                  <div class="session-info" @click="loadSession(session.id)">
                     <div class="session-title">{{ session.title }}</div>
                     <div class="session-meta">
                       {{ formatDate(session.updatedAt) }}
                     </div>
                   </div>
+                  <template #suffix>
+                    <n-popconfirm
+                      :show-icon="false"
+                      @positive-click="deleteSession(session.id)"
+                      trigger="click"
+                    >
+                      <template #trigger>
+                        <n-button 
+                          size="small" 
+                          quaternary 
+                          circle 
+                          type="error"
+                          class="delete-button"
+                          @click.stop
+                        >
+                          <template #icon>
+                            <n-icon><trash-outline /></n-icon>
+                          </template>
+                        </n-button>
+                      </template>
+                      <span>이 채팅 세션을 삭제하시겠습니까?</span>
+                    </n-popconfirm>
+                  </template>
                 </n-list-item>
               </n-list>
               
@@ -189,10 +211,11 @@ import {
   NScrollbar,
   NResult,
   NCard,
+  NPopconfirm,
   useMessage,
   type SelectOption
 } from 'naive-ui'
-import { AddOutline } from '@vicons/ionicons5'
+import { AddOutline, TrashOutline } from '@vicons/ionicons5'
 import type { 
   AIModelGroup, 
   ChatSession, 
@@ -488,6 +511,30 @@ const handleApiKeyUpdated = () => {
   }
 }
 
+const deleteSession = (sessionId: string) => {
+  try {
+    const success = LocalStorageManager.deleteChatSession(sessionId)
+    
+    if (success) {
+      // 삭제된 세션이 현재 활성 세션인 경우 초기화
+      if (currentSessionId.value === sessionId) {
+        currentSessionId.value = null
+        currentMessages.value = []
+      }
+      
+      // 세션 목록 새로고침
+      loadChatSessions()
+      
+      message.success('채팅 세션이 삭제되었습니다.')
+    } else {
+      message.error('세션 삭제에 실패했습니다.')
+    }
+  } catch (error) {
+    console.error('Delete session failed:', error)
+    message.error('세션 삭제 중 오류가 발생했습니다.')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   // 초기 로드
@@ -533,14 +580,20 @@ onMounted(() => {
       }
 
       .session-item {
-        cursor: pointer;
         padding: 12px;
         border-radius: 8px;
         margin-bottom: 4px;
         transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
         &:hover {
           background-color: var(--hover-color);
+          
+          .delete-button {
+            opacity: 1;
+          }
         }
 
         &.active {
@@ -548,6 +601,9 @@ onMounted(() => {
         }
 
         .session-info {
+          cursor: pointer;
+          flex: 1;
+          
           .session-title {
             font-size: 14px;
             font-weight: 500;
@@ -558,6 +614,13 @@ onMounted(() => {
             font-size: 12px;
             color: var(--text-color-3);
           }
+        }
+
+        .delete-button {
+          opacity: 0;
+          transition: opacity 0.2s;
+          flex-shrink: 0;
+          margin-left: 8px;
         }
       }
 
