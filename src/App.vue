@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   NConfigProvider,
@@ -47,6 +47,11 @@ const themeOverrides: GlobalThemeOverrides = {
   }
 }
 
+// 테마 상태를 DOM에 반영하는 함수
+const updateThemeAttribute = (isDark: boolean) => {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+}
+
 // Methods
 const toggleTheme = () => {
   isDarkMode.value = !isDarkMode.value
@@ -55,6 +60,16 @@ const toggleTheme = () => {
 const navigateTo = (path: string) => {
   router.push(path)
 }
+
+// 테마 변경 감지 및 DOM 업데이트
+watch(isDarkMode, (newValue) => {
+  updateThemeAttribute(newValue)
+}, { immediate: true })
+
+// 컴포넌트 마운트 시 초기 테마 설정
+onMounted(() => {
+  updateThemeAttribute(isDarkMode.value)
+})
 </script>
 
 <template>

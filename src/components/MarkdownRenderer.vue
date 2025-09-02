@@ -472,21 +472,17 @@ onMounted(updateContent)
   }
 
   /* 라이트 모드에서 언어 배지 텍스트 - 검정색으로 설정 */
-  @media (prefers-color-scheme: light) {
-    .language-badge {
-      background: #f0f0f0;
-      color: #333333;
-      border: 1px solid #d0d0d0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+  html[data-theme="light"] .markdown-renderer .language-badge {
+    background: #f0f0f0;
+    color: #333333;
+    border: 1px solid #d0d0d0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   /* 다크 모드에서 언어 배지 텍스트 */
-  @media (prefers-color-scheme: dark) {
-    .language-badge {
-      color: white;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-    }
+  html[data-theme="dark"] .markdown-renderer .language-badge {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
   }
 
   .language-icon {
@@ -591,17 +587,13 @@ onMounted(updateContent)
   }
 
   /* 라이트 모드에서 코드 콘텐츠 래퍼 배경 */
-  @media (prefers-color-scheme: light) {
-    .code-content-wrapper {
-      background: #f8f9fa;
-    }
+  html[data-theme="light"] .markdown-renderer .code-content-wrapper {
+    background: #f8f9fa;
   }
 
   /* 다크 모드에서 코드 콘텐츠 래퍼 배경 조정 */
-  @media (prefers-color-scheme: dark) {
-    .code-content-wrapper {
-      background: #1a1a1a;
-    }
+  html[data-theme="dark"] .markdown-renderer .code-content-wrapper {
+    background: #1a1a1a;
   }
 
   /* 현대적인 코드 블록 */
@@ -618,17 +610,13 @@ onMounted(updateContent)
   }
 
   /* 라이트 모드에서 코드 블록 배경 */
-  @media (prefers-color-scheme: light) {
-    .modern-code-block {
-      background: #f8f9fa;
-    }
+  html[data-theme="light"] .markdown-renderer .modern-code-block {
+    background: #f8f9fa;
   }
 
   /* 다크 모드에서 코드 블록 배경 조정 */
-  @media (prefers-color-scheme: dark) {
-    .modern-code-block {
-      background: #1a1a1a;
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-block {
+    background: #1a1a1a;
   }
   
   .modern-code-block code {
@@ -643,17 +631,13 @@ onMounted(updateContent)
   }
 
   /* 라이트 모드에서 코드 텍스트 색상 */
-  @media (prefers-color-scheme: light) {
-    .modern-code-block code {
-      color: #24292f;
-    }
+  html[data-theme="light"] .markdown-renderer .modern-code-block code {
+    color: #24292f;
   }
 
   /* 다크 모드에서 코드 텍스트 색상 조정 */
-  @media (prefers-color-scheme: dark) {
-    .modern-code-block code {
-      color: #e1e5e9;
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-block code {
+    color: #e1e5e9;
   }
 
   /* 현대적인 스크롤바 */
@@ -682,41 +666,37 @@ onMounted(updateContent)
   }
 
   /* 라이트 모드에서 스크롤바 색상 조정 */
-  @media (prefers-color-scheme: light) {
-    .modern-code-block {
-      scrollbar-color: #d0d7de #f8f9fa;
-    }
+  html[data-theme="light"] .markdown-renderer .modern-code-block {
+    scrollbar-color: #d0d7de #f8f9fa;
+  }
 
-    .modern-code-block::-webkit-scrollbar-track {
-      background: #f8f9fa;
-    }
+  html[data-theme="light"] .markdown-renderer .modern-code-block::-webkit-scrollbar-track {
+    background: #f8f9fa;
+  }
 
-    .modern-code-block::-webkit-scrollbar-thumb {
-      background: #d0d7de;
-    }
+  html[data-theme="light"] .markdown-renderer .modern-code-block::-webkit-scrollbar-thumb {
+    background: #d0d7de;
+  }
 
-    .modern-code-block::-webkit-scrollbar-thumb:hover {
-      background: #afb8c1;
-    }
+  html[data-theme="light"] .markdown-renderer .modern-code-block::-webkit-scrollbar-thumb:hover {
+    background: #afb8c1;
   }
 
   /* 다크 모드에서 스크롤바 색상 조정 */
-  @media (prefers-color-scheme: dark) {
-    .modern-code-block {
-      scrollbar-color: #444444 #1a1a1a;
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-block {
+    scrollbar-color: #444444 #1a1a1a;
+  }
 
-    .modern-code-block::-webkit-scrollbar-track {
-      background: #1a1a1a;
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-block::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
 
-    .modern-code-block::-webkit-scrollbar-thumb {
-      background: #444444;
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-block::-webkit-scrollbar-thumb {
+    background: #444444;
+  }
 
-    .modern-code-block::-webkit-scrollbar-thumb:hover {
-      background: #555555;
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-block::-webkit-scrollbar-thumb:hover {
+    background: #555555;
   }
 
   /* 코드 하이라이팅 향상 */
@@ -726,17 +706,13 @@ onMounted(updateContent)
   }
 
   /* 라이트 모드에서 코드 하이라이팅 색상 */
-  @media (prefers-color-scheme: light) {
-    .modern-code-block .hljs {
-      color: #24292f !important;
-    }
+  html[data-theme="light"] .markdown-renderer .modern-code-block .hljs {
+    color: #24292f !important;
   }
 
   /* 다크 모드에서 코드 하이라이팅 색상 조정 */
-  @media (prefers-color-scheme: dark) {
-    .modern-code-block .hljs {
-      color: #e1e5e9 !important;
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-block .hljs {
+    color: #e1e5e9 !important;
   }
 
   /* 현대적인 애니메이션 키프레임 */
@@ -864,12 +840,10 @@ onMounted(updateContent)
   }
 
   /* 다크모드 감지 및 추가 스타일링 */
-  @media (prefers-color-scheme: dark) {
-    .modern-code-container {
-      box-shadow: 
-        0 4px 20px rgba(0, 0, 0, 0.3),
-        0 1px 3px rgba(0, 0, 0, 0.2);
-    }
+  html[data-theme="dark"] .markdown-renderer .modern-code-container {
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      0 1px 3px rgba(0, 0, 0, 0.2);
   }
 
   /* 애니메이션 줄이기 선호 시 */
