@@ -471,6 +471,22 @@ onMounted(updateContent)
     box-shadow: 0 2px 8px rgba(32, 128, 240, 0.3);
   }
 
+  /* 라이트 모드에서 언어 배지 텍스트 가시성 개선 */
+  @media (prefers-color-scheme: light) {
+    .language-badge {
+      color: white;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+  }
+  
+  /* 다크 모드에서 언어 배지 텍스트 */
+  @media (prefers-color-scheme: dark) {
+    .language-badge {
+      color: white;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    }
+  }
+
   .language-icon {
     font-size: 14px;
     animation: pulse 2s infinite;
@@ -572,6 +588,13 @@ onMounted(updateContent)
     overflow: hidden;
   }
 
+  /* 다크 모드에서 코드 콘텐츠 래퍼 배경 조정 */
+  @media (prefers-color-scheme: dark) {
+    .code-content-wrapper {
+      background: #1a1a1a;
+    }
+  }
+
   /* 현대적인 코드 블록 */
   .modern-code-block {
     background: var(--code-color);
@@ -584,6 +607,13 @@ onMounted(updateContent)
     border-radius: 0;
     position: relative;
   }
+
+  /* 다크 모드에서 코드 블록 배경 조정 */
+  @media (prefers-color-scheme: dark) {
+    .modern-code-block {
+      background: #1a1a1a;
+    }
+  }
   
   .modern-code-block code {
     background: transparent;
@@ -594,6 +624,13 @@ onMounted(updateContent)
     color: var(--text-color-1);
     font-weight: 400;
     font-feature-settings: 'liga' 1, 'calt' 1;
+  }
+
+  /* 다크 모드에서 코드 텍스트 색상 조정 */
+  @media (prefers-color-scheme: dark) {
+    .modern-code-block code {
+      color: #e1e5e9;
+    }
   }
 
   /* 현대적인 스크롤바 */
@@ -621,10 +658,36 @@ onMounted(updateContent)
     background: var(--primary-color-hover);
   }
 
+  /* 다크 모드에서 스크롤바 색상 조정 */
+  @media (prefers-color-scheme: dark) {
+    .modern-code-block {
+      scrollbar-color: #444444 #1a1a1a;
+    }
+
+    .modern-code-block::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+
+    .modern-code-block::-webkit-scrollbar-thumb {
+      background: #444444;
+    }
+
+    .modern-code-block::-webkit-scrollbar-thumb:hover {
+      background: #555555;
+    }
+  }
+
   /* 코드 하이라이팅 향상 */
   .modern-code-block .hljs {
     background: transparent !important;
     color: var(--text-color-1);
+  }
+
+  /* 다크 모드에서 코드 하이라이팅 색상 조정 */
+  @media (prefers-color-scheme: dark) {
+    .modern-code-block .hljs {
+      color: #e1e5e9 !important;
+    }
   }
 
   /* 현대적인 애니메이션 키프레임 */
