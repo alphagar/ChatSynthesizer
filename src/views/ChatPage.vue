@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    <n-layout has-sider>
+    <n-layout has-sider class="full-height-layout">
       <!-- 사이드바 -->
       <n-layout-sider
         bordered
@@ -68,7 +68,7 @@
       </n-layout-sider>
 
       <!-- 메인 채팅 영역 -->
-      <n-layout-content>
+      <n-layout-content class="main-content">
         <div class="chat-content">
           <!-- API 키 설정 안내 -->
           <div v-if="!hasApiKey" class="setup-required">
@@ -500,7 +500,16 @@ onMounted(() => {
 
 <style scoped>
 .chat-page {
-  height: 100vh;
+  height: 100%;
+  
+  .full-height-layout {
+    height: 100%;
+  }
+  
+  .main-content {
+    height: 100%;
+    overflow: hidden;
+  }
   
   .sidebar-content {
     padding: 16px;
@@ -560,7 +569,7 @@ onMounted(() => {
   }
 
   .chat-content {
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
 
@@ -579,16 +588,18 @@ onMounted(() => {
     }
 
     .chat-interface {
-      flex: 1;
+      height: 100%;
       display: flex;
       flex-direction: column;
 
       .messages-container {
         flex: 1;
         min-height: 0;
+        overflow: hidden;
 
         .messages-list {
           padding: 24px;
+          min-height: 100%;
           
           .generating-messages {
             .user-message {
@@ -601,6 +612,11 @@ onMounted(() => {
       .input-area {
         border-top: 1px solid var(--border-color);
         padding: 24px;
+        flex-shrink: 0;
+        background: var(--body-color);
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
       }
     }
   }

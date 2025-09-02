@@ -128,8 +128,8 @@ const navigateTo = (path: string) => {
         </n-layout-header>
 
         <!-- 메인 컨텐츠 -->
-        <n-layout style="height: calc(100vh - 64px);">
-          <router-view />
+        <n-layout style="height: calc(100vh - 64px); overflow: hidden;">
+          <router-view style="height: 100%; overflow: hidden;" />
         </n-layout>
       </n-layout>
     </n-message-provider>
