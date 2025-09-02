@@ -471,11 +471,13 @@ onMounted(updateContent)
     box-shadow: 0 2px 8px rgba(32, 128, 240, 0.3);
   }
 
-  /* 라이트 모드에서 언어 배지 텍스트 가시성 개선 */
+  /* 라이트 모드에서 언어 배지 텍스트 - 검정색으로 설정 */
   @media (prefers-color-scheme: light) {
     .language-badge {
-      color: white;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      background: #f0f0f0;
+      color: #333333;
+      border: 1px solid #d0d0d0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
   }
   
@@ -588,6 +590,13 @@ onMounted(updateContent)
     overflow: hidden;
   }
 
+  /* 라이트 모드에서 코드 콘텐츠 래퍼 배경 */
+  @media (prefers-color-scheme: light) {
+    .code-content-wrapper {
+      background: #f8f9fa;
+    }
+  }
+
   /* 다크 모드에서 코드 콘텐츠 래퍼 배경 조정 */
   @media (prefers-color-scheme: dark) {
     .code-content-wrapper {
@@ -608,6 +617,13 @@ onMounted(updateContent)
     position: relative;
   }
 
+  /* 라이트 모드에서 코드 블록 배경 */
+  @media (prefers-color-scheme: light) {
+    .modern-code-block {
+      background: #f8f9fa;
+    }
+  }
+
   /* 다크 모드에서 코드 블록 배경 조정 */
   @media (prefers-color-scheme: dark) {
     .modern-code-block {
@@ -624,6 +640,13 @@ onMounted(updateContent)
     color: var(--text-color-1);
     font-weight: 400;
     font-feature-settings: 'liga' 1, 'calt' 1;
+  }
+
+  /* 라이트 모드에서 코드 텍스트 색상 */
+  @media (prefers-color-scheme: light) {
+    .modern-code-block code {
+      color: #24292f;
+    }
   }
 
   /* 다크 모드에서 코드 텍스트 색상 조정 */
@@ -658,6 +681,25 @@ onMounted(updateContent)
     background: var(--primary-color-hover);
   }
 
+  /* 라이트 모드에서 스크롤바 색상 조정 */
+  @media (prefers-color-scheme: light) {
+    .modern-code-block {
+      scrollbar-color: #d0d7de #f8f9fa;
+    }
+
+    .modern-code-block::-webkit-scrollbar-track {
+      background: #f8f9fa;
+    }
+
+    .modern-code-block::-webkit-scrollbar-thumb {
+      background: #d0d7de;
+    }
+
+    .modern-code-block::-webkit-scrollbar-thumb:hover {
+      background: #afb8c1;
+    }
+  }
+
   /* 다크 모드에서 스크롤바 색상 조정 */
   @media (prefers-color-scheme: dark) {
     .modern-code-block {
@@ -681,6 +723,13 @@ onMounted(updateContent)
   .modern-code-block .hljs {
     background: transparent !important;
     color: var(--text-color-1);
+  }
+
+  /* 라이트 모드에서 코드 하이라이팅 색상 */
+  @media (prefers-color-scheme: light) {
+    .modern-code-block .hljs {
+      color: #24292f !important;
+    }
   }
 
   /* 다크 모드에서 코드 하이라이팅 색상 조정 */
