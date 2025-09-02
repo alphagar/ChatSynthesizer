@@ -234,7 +234,10 @@ const initializeForm = () => {
     form.id = props.group.id
     form.title = props.group.title
     form.models = [...props.group.models]
-    form.synthesizer = { ...props.group.synthesizer }
+    form.synthesizer = { 
+      ...props.group.synthesizer,
+      intersectionThreshold: props.group.synthesizer.intersectionThreshold ?? 2
+    }
   } else {
     form.id = generateId()
     form.title = ''
