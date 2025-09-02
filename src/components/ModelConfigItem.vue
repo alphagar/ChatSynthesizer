@@ -51,19 +51,6 @@
                     />
                   </div>
                 </n-grid-item>
-                
-                <n-grid-item>
-                  <div class="param-item">
-                    <label>Max Tokens</label>
-                    <n-input-number
-                      :value="model.parameters.max_tokens ?? DEFAULT_MODEL_PARAMETERS.max_tokens"
-                      @update:value="updateParameter('max_tokens', $event)"
-                      :min="1"
-                      :max="4000"
-                      size="small"
-                    />
-                  </div>
-                </n-grid-item>
               </n-grid>
             </n-space>
           </n-collapse-item>
@@ -221,8 +208,7 @@ const expandedSections = ref<string[]>([])
 const customParameters = computed({
   get(): Array<{ key: string; value: any }> {
     const wellKnownParams = [
-      'temperature', 'top_p', 'top_k', 'max_tokens',
-      'frequency_penalty', 'presence_penalty', 'repetition_penalty'
+      'temperature', 'top_p', 'top_k', 'frequency_penalty', 'presence_penalty', 'repetition_penalty'
     ]
     
     return Object.entries(props.model.parameters)

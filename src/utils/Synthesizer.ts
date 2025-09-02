@@ -59,8 +59,7 @@ export class Synthesizer {
           { role: 'system', content: this.getSystemPrompt('union') },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.3,
-        max_tokens: 2000
+        temperature: 0.3
       })
 
       return response.choices[0]?.message.content || "통합된 응답을 생성할 수 없습니다."
@@ -88,8 +87,7 @@ export class Synthesizer {
           { role: 'system', content: this.getSystemPrompt('intersection') },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.2,
-        max_tokens: 2000
+        temperature: 0.2
       })
 
       return response.choices[0]?.message.content || "공통 내용을 찾을 수 없습니다."
@@ -116,8 +114,7 @@ export class Synthesizer {
           { role: 'system', content: this.getSystemPrompt('selective') },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.4,
-        max_tokens: 2000
+        temperature: 0.4
       })
 
       return response.choices[0]?.message.content || "선별된 응답을 생성할 수 없습니다."

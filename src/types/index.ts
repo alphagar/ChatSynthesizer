@@ -131,7 +131,6 @@ export const DEFAULT_MODEL_PARAMETERS = {
   temperature: 0.7,
   top_p: 0.9,
   top_k: 40,
-  max_tokens: 1000,
   frequency_penalty: 0,
   presence_penalty: 0,
   repetition_penalty: 1
