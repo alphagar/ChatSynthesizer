@@ -465,10 +465,8 @@ onMounted(updateContent)
     border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
-    color: white;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(32, 128, 240, 0.3);
   }
 
   /* 라이트 모드에서 언어 배지 텍스트 - 검정색으로 설정 */
@@ -476,13 +474,11 @@ onMounted(updateContent)
     background: #f0f0f0;
     color: #333333;
     border: 1px solid #d0d0d0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   /* 다크 모드에서 언어 배지 텍스트 */
   html[data-theme="dark"] .markdown-renderer .language-badge {
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
   }
 
   .language-icon {
