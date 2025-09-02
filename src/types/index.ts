@@ -111,14 +111,19 @@ export const LOCAL_STORAGE_KEYS = {
 
 // 잘 알려진 AI 모델 목록
 export const POPULAR_MODELS = [
-  { id: 'openai/gpt-4o', name: 'GPT-4O', provider: 'OpenAI' },
-  { id: 'openai/gpt-4o-mini', name: 'GPT-4O Mini', provider: 'OpenAI' },
-  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic' },
-  { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', provider: 'Anthropic' },
-  { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', provider: 'Google' },
-  { id: 'google/gemini-flash-1.5', name: 'Gemini Flash 1.5', provider: 'Google' },
-  { id: 'meta-llama/llama-3.2-90b-vision-instruct', name: 'Llama 3.2 90B Vision', provider: 'Meta' },
-  { id: 'mistralai/mistral-large', name: 'Mistral Large', provider: 'Mistral' },
+  { id: 'openai/gpt-5', name: 'GPT-5', provider: 'OpenAI' },
+  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', provider: 'OpenAI' },
+  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano', provider: 'OpenAI' },
+  { id: 'openai/gpt-4.1', name: 'GPT-4.1', provider: 'OpenAI' },
+
+  { id: 'anthropic/claude-opus-4.1', name: 'Claude Opus 4.1', provider: 'Anthropic' },
+  { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'Anthropic' },
+
+  { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'Google' },
+  { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google' },
+  { id: 'google/gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', provider: 'Google' },
+
+  { id: 'x-ai/grok-4', name: 'Grok 4', provider: 'xAI' }
 ] as const
 
 // 기본 모델 파라미터
@@ -149,4 +154,11 @@ export const VALIDATE_REQUEST_INFO: OpenRouterRequest = {
     { role: 'user', content: 'Hello' }
   ],
   max_tokens: 1
+} as const
+
+// 기본 싱크로나이저 설정
+export const DEFAULT_SYNTHESIZER: SynthesizerConfig = {
+  model: 'google/gemini-2.5-pro',
+  mode: 'union',
+  intersectionThreshold: 2
 } as const

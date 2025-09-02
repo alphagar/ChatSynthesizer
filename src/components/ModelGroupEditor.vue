@@ -163,7 +163,7 @@ import {
 } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
 import type { AIModelGroup, AIModelConfig } from '@/types'
-import { POPULAR_MODELS, DEFAULT_MODEL_PARAMETERS } from '@/types'
+import { POPULAR_MODELS, DEFAULT_SYNTHESIZER } from '@/types'
 import { generateId, LocalStorageManager, OpenRouterAPI } from '@/utils'
 import ModelConfigItem from './ModelConfigItem.vue'
 import ModelSelector from './ModelSelector.vue'
@@ -243,9 +243,8 @@ const initializeForm = () => {
     form.title = LocalStorageManager.generateUniqueGroupTitle()
     form.models = []
     form.synthesizer = {
-      model: 'openai/gpt-4o',
-      mode: 'union',
-      intersectionThreshold: 2
+      ...DEFAULT_SYNTHESIZER,
+      intersectionThreshold: DEFAULT_SYNTHESIZER.intersectionThreshold ?? 2
     }
   }
 }
