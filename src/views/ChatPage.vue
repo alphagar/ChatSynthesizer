@@ -74,22 +74,54 @@
           <div v-if="!hasApiKey" class="setup-required">
             <n-result status="info" title="설정이 필요합니다">
               <template #footer>
-                <ApiKeyManager />
+                <ApiKeyManager @api-key-updated="handleApiKeyUpdated" />
               </template>
             </n-result>
           </div>
 
           <!-- 모델 그룹 선택 안내 -->
           <div v-else-if="!selectedGroupId" class="group-required">
-            <n-result status="info" title="AI 모델 그룹을 선택해주세요">
-              <template #footer>
-                <n-space>
-                  <n-button type="primary" @click="$router.push('/groups')">
-                    그룹 관리하기
-                  </n-button>
-                </n-space>
-              </template>
-            </n-result>
+            <div class="setup-guide">
+              <n-card title="🎯 설정 진행 상황" style="max-width: 600px; margin: 0 auto 32px;">
+                <n-steps :current="modelGroups.length > 0 ? 2 : 1" size="small" style="margin-bottom: 24px;">
+                  <n-step title="API 키 설정" description="완료" />
+                  <n-step 
+                    title="모델 그룹 설정" 
+                    :description="modelGroups.length > 0 ? '완료' : '설정 필요'" 
+                  />
+                  <n-step title="채팅 시작" :description="modelGroups.length > 0 ? '그룹 선택 필요' : '대기 중'" />
+                </n-steps>
+              </n-card>
+
+              <n-result 
+                :status="modelGroups.length > 0 ? 'info' : 'warning'" 
+                :title="modelGroups.length > 0 ? 'AI 모델 그룹을 선택해주세요' : '먼저 AI 모델 그룹을 생성해주세요'"
+              >
+                <template #footer>
+                  <div v-if="modelGroups.length > 0" class="group-selection">
+                    <p style="margin-bottom: 24px; color: var(--text-color-2);">
+                      사이드바에서 AI 모델 그룹을 선택하거나, 새로운 그룹을 만들어보세요.
+                    </p>
+                    <n-space justify="center">
+                      <n-button type="primary" @click="$router.push('/groups')">
+                        그룹 관리하기
+                      </n-button>
+                    </n-space>
+                  </div>
+                  <div v-else class="no-groups">
+                    <p style="margin-bottom: 24px; color: var(--text-color-2);">
+                      ChatSynthesizer는 여러 AI 모델의 응답을 동시에 받아 비교하고 통합합니다.<br>
+                      먼저 사용할 AI 모델들을 그룹으로 설정해주세요.
+                    </p>
+                    <n-space justify="center">
+                      <n-button type="primary" size="large" @click="$router.push('/groups')">
+                        첫 번째 모델 그룹 만들기
+                      </n-button>
+                    </n-space>
+                  </div>
+                </template>
+              </n-result>
+            </div>
           </div>
 
           <!-- 채팅 인터페이스 -->
@@ -199,8 +231,11 @@ const streamingResponses = ref<ModelResponse[]>([])
 const pendingUserMessage = ref('')
 const abortControllers = ref<AbortController[]>([])
 
+// Reactive state for API key detection
+const apiKeyExists = ref(!!LocalStorageManager.getApiKey())
+
 // Computed
-const hasApiKey = computed(() => !!LocalStorageManager.getApiKey())
+const hasApiKey = computed(() => apiKeyExists.value)
 
 const modelGroups = computed(() => LocalStorageManager.getModelGroups())
 
@@ -439,6 +474,20 @@ const scrollToBottom = () => {
   }
 }
 
+const handleApiKeyUpdated = () => {
+  // API 키 상태 업데이트
+  apiKeyExists.value = !!LocalStorageManager.getApiKey()
+  
+  // 모델 그룹이 있는 경우 첫 번째 그룹 선택
+  if (apiKeyExists.value && modelGroups.value.length > 0) {
+    setTimeout(() => {
+      selectedGroupId.value = modelGroups.value[0].id
+      handleGroupChange(selectedGroupId.value)
+      message.success('설정이 완료되었습니다! 이제 채팅을 시작할 수 있습니다.')
+    }, 500)
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   // 초기 로드
@@ -521,6 +570,12 @@ onMounted(() => {
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .setup-guide {
+      width: 100%;
+      max-width: 800px;
     }
 
     .chat-interface {

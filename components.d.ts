@@ -17,6 +17,8 @@ declare module 'vue' {
     ModelGroupEditor: typeof import('./src/components/ModelGroupEditor.vue')['default']
     ModelResponsesDisplay: typeof import('./src/components/ModelResponsesDisplay.vue')['default']
     ModelSelector: typeof import('./src/components/ModelSelector.vue')['default']
+    NStep: typeof import('naive-ui')['NStep']
+    NSteps: typeof import('naive-ui')['NSteps']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
