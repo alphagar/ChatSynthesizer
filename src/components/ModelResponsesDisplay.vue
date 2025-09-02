@@ -9,11 +9,12 @@
       />
     </div>
 
-    <n-space direction="vertical" :size="16" style="margin-top: 16px;">
+    <div class="responses-container">
       <n-card 
         v-for="response in responses" 
         :key="response.modelId"
         size="small"
+        class="response-card"
       >
         <template #header>
           <n-space justify="space-between" align="center">
@@ -61,7 +62,7 @@
           </div>
         </div>
       </n-card>
-    </n-space>
+    </div>
 
     <!-- 합성 진행 상태 -->
     <div v-if="!isGenerating && allCompleted" class="synthesis-status">
@@ -140,6 +141,19 @@ const getStatusText = (response: ModelResponse) => {
       font-weight: 600;
       color: var(--text-color-1);
     }
+  }
+
+  .responses-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+    width: 100%;
+  }
+
+  .response-card {
+    width: 100%;
+    flex-shrink: 0;
   }
 
   .model-info {
