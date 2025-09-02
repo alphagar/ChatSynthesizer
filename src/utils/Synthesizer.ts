@@ -1,4 +1,4 @@
-import type { ModelResponse, SynthesizerConfig } from '@/types'
+import type { ModelResponse, SynthesizerConfig, StreamChunk } from '@/types'
 import { OpenRouterAPI } from './OpenRouterAPI'
 
 export class Synthesizer {
@@ -9,124 +9,42 @@ export class Synthesizer {
   }
 
   /**
-   * 여러 모델의 응답을 통합합니다
+   * 여러 모델의 응답을 스트리밍으로 통합합니다
    */
-  async synthesize(
+  async* synthesizeStream(
     responses: ModelResponse[], 
     config: SynthesizerConfig,
     originalQuestion: string
-  ): Promise<string> {
+  ): AsyncGenerator<string> {
     if (responses.length === 0) {
-      return "응답을 받지 못했습니다."
+      yield "응답을 받지 못했습니다."
+      return
     }
 
     // 완료된 응답들만 필터링
     const completedResponses = responses.filter(r => r.isCompleted && r.content.trim())
 
     if (completedResponses.length === 0) {
-      return "완료된 응답이 없습니다."
+      yield "완료된 응답이 없습니다."
+      return
     }
 
     switch (config.mode) {
       case 'union':
-        return this.synthesizeUnion(completedResponses, config, originalQuestion)
+        yield* this.synthesizeUnionStream(completedResponses, config, originalQuestion)
+        break
       
       case 'intersection':
-        return this.synthesizeIntersection(completedResponses, config, originalQuestion)
+        yield* this.synthesizeIntersectionStream(completedResponses, config, originalQuestion)
+        break
       
       case 'selective':
-        return this.synthesizeSelective(completedResponses, config, originalQuestion)
+        yield* this.synthesizeSelectiveStream(completedResponses, config, originalQuestion)
+        break
       
       default:
-        return this.synthesizeUnion(completedResponses, config, originalQuestion)
-    }
-  }
-
-  /**
-   * 합집합 모드: 중복 제거하여 정보 통합
-   */
-  private async synthesizeUnion(
-    responses: ModelResponse[], 
-    config: SynthesizerConfig, 
-    originalQuestion: string
-  ): Promise<string> {
-    const prompt = this.createUnionPrompt(responses, originalQuestion)
-    
-    try {
-      const response = await this.api.chatCompletion({
-        model: config.model.modelName,
-        messages: [
-          { role: 'system', content: this.getSystemPrompt('union') },
-          { role: 'user', content: prompt }
-        ],
-        temperature: config.model.parameters.temperature ?? 0.3,
-        ...this.extractModelParameters(config.model.parameters)
-      })
-
-      const content = response.choices[0]?.message.content
-      return (typeof content === 'string' ? content : "통합된 응답을 생성할 수 없습니다.")
-    } catch (error) {
-      console.error('Union synthesis failed:', error)
-      return this.fallbackSynthesis(responses, 'union')
-    }
-  }
-
-  /**
-   * 교집합 모드: 공통 언급 내용만 추출
-   */
-  private async synthesizeIntersection(
-    responses: ModelResponse[], 
-    config: SynthesizerConfig, 
-    originalQuestion: string
-  ): Promise<string> {
-    const threshold = config.intersectionThreshold || Math.max(2, Math.ceil(responses.length / 2))
-    const prompt = this.createIntersectionPrompt(responses, originalQuestion, threshold)
-    
-    try {
-      const response = await this.api.chatCompletion({
-        model: config.model.modelName,
-        messages: [
-          { role: 'system', content: this.getSystemPrompt('intersection') },
-          { role: 'user', content: prompt }
-        ],
-        temperature: config.model.parameters.temperature ?? 0.2,
-        ...this.extractModelParameters(config.model.parameters)
-      })
-
-      const content = response.choices[0]?.message.content
-      return (typeof content === 'string' ? content : "공통 내용을 찾을 수 없습니다.")
-    } catch (error) {
-      console.error('Intersection synthesis failed:', error)
-      return this.fallbackSynthesis(responses, 'intersection')
-    }
-  }
-
-  /**
-   * 선별 모드: 가치 높은 정보만 선별
-   */
-  private async synthesizeSelective(
-    responses: ModelResponse[], 
-    config: SynthesizerConfig, 
-    originalQuestion: string
-  ): Promise<string> {
-    const prompt = this.createSelectivePrompt(responses, originalQuestion)
-    
-    try {
-      const response = await this.api.chatCompletion({
-        model: config.model.modelName,
-        messages: [
-          { role: 'system', content: this.getSystemPrompt('selective') },
-          { role: 'user', content: prompt }
-        ],
-        temperature: config.model.parameters.temperature ?? 0.4,
-        ...this.extractModelParameters(config.model.parameters)
-      })
-
-      const content = response.choices[0]?.message.content
-      return (typeof content === 'string' ? content : "선별된 응답을 생성할 수 없습니다.")
-    } catch (error) {
-      console.error('Selective synthesis failed:', error)
-      return this.fallbackSynthesis(responses, 'selective')
+        yield* this.synthesizeUnionStream(completedResponses, config, originalQuestion)
+        break
     }
   }
 
@@ -222,6 +140,106 @@ export class Synthesizer {
     prompt += `위 응답들에서 가장 정확하고 가치 있는 정보만을 선별하여 최고 품질의 답변을 만들어주세요. 질문에 가장 직접적이고 실용적인 답변을 제공해주세요.`
 
     return prompt
+  }
+
+  /**
+   * 합집합 모드 스트리밍: 중복 제거하여 정보 통합
+   */
+  private async* synthesizeUnionStream(
+    responses: ModelResponse[], 
+    config: SynthesizerConfig, 
+    originalQuestion: string
+  ): AsyncGenerator<string> {
+    const prompt = this.createUnionPrompt(responses, originalQuestion)
+    
+    try {
+      const stream = this.api.streamChatCompletion({
+        model: config.model.modelName,
+        messages: [
+          { role: 'system', content: this.getSystemPrompt('union') },
+          { role: 'user', content: prompt }
+        ],
+        temperature: config.model.parameters.temperature ?? 0.3,
+        ...this.extractModelParameters(config.model.parameters)
+      })
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || ''
+        if (content) {
+          yield content
+        }
+      }
+    } catch (error) {
+      console.error('Union synthesis stream failed:', error)
+      yield this.fallbackSynthesis(responses, 'union')
+    }
+  }
+
+  /**
+   * 교집합 모드 스트리밍: 공통 언급 내용만 추출
+   */
+  private async* synthesizeIntersectionStream(
+    responses: ModelResponse[], 
+    config: SynthesizerConfig, 
+    originalQuestion: string
+  ): AsyncGenerator<string> {
+    const threshold = config.intersectionThreshold || Math.max(2, Math.ceil(responses.length / 2))
+    const prompt = this.createIntersectionPrompt(responses, originalQuestion, threshold)
+    
+    try {
+      const stream = this.api.streamChatCompletion({
+        model: config.model.modelName,
+        messages: [
+          { role: 'system', content: this.getSystemPrompt('intersection') },
+          { role: 'user', content: prompt }
+        ],
+        temperature: config.model.parameters.temperature ?? 0.2,
+        ...this.extractModelParameters(config.model.parameters)
+      })
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || ''
+        if (content) {
+          yield content
+        }
+      }
+    } catch (error) {
+      console.error('Intersection synthesis stream failed:', error)
+      yield this.fallbackSynthesis(responses, 'intersection')
+    }
+  }
+
+  /**
+   * 선별 모드 스트리밍: 가치 높은 정보만 선별
+   */
+  private async* synthesizeSelectiveStream(
+    responses: ModelResponse[], 
+    config: SynthesizerConfig, 
+    originalQuestion: string
+  ): AsyncGenerator<string> {
+    const prompt = this.createSelectivePrompt(responses, originalQuestion)
+    
+    try {
+      const stream = this.api.streamChatCompletion({
+        model: config.model.modelName,
+        messages: [
+          { role: 'system', content: this.getSystemPrompt('selective') },
+          { role: 'user', content: prompt }
+        ],
+        temperature: config.model.parameters.temperature ?? 0.4,
+        ...this.extractModelParameters(config.model.parameters)
+      })
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || ''
+        if (content) {
+          yield content
+        }
+      }
+    } catch (error) {
+      console.error('Selective synthesis stream failed:', error)
+      yield this.fallbackSynthesis(responses, 'selective')
+    }
   }
 
   /**

@@ -161,7 +161,7 @@
                   />
                   
                   <!-- 로딩 중 메시지들 -->
-                  <div v-if="isGenerating" class="generating-messages">
+                  <div v-if="isGenerating || isSynthesizing" class="generating-messages">
                     <div class="user-message">
                       <n-card embedded>
                         {{ pendingUserMessage }}
@@ -172,6 +172,25 @@
                       :responses="streamingResponses"
                       :is-generating="isGenerating"
                     />
+                    
+                    <!-- Synthesizer 응답 -->
+                    <div v-if="isSynthesizing || synthesizerResponse" class="synthesizer-response">
+                      <n-card 
+                        title="🎯 통합 결과"
+                        :loading="isSynthesizing"
+                        embedded
+                      >
+                        <template #header-extra>
+                          <n-text depth="3" style="font-size: 12px;">
+                            {{ selectedGroup?.synthesizer.mode }} 모드
+                          </n-text>
+                        </template>
+                        
+                        <div class="synthesizer-content">
+                          <MarkdownRenderer :content="synthesizerResponse || '응답을 통합하고 있습니다...'" />
+                        </div>
+                      </n-card>
+                    </div>
                   </div>
                 </div>
               </n-scrollbar>
@@ -182,10 +201,10 @@
               <MessageInput
                 v-model:message="inputMessage"
                 v-model:files="uploadedFiles"
-                :disabled="isGenerating"
+                :disabled="isGenerating || isSynthesizing"
                 @send="handleSendMessage"
                 @stop="handleStopGeneration"
-                :show-stop="isGenerating"
+                :show-stop="isGenerating || isSynthesizing"
               />
             </div>
           </div>
@@ -234,6 +253,7 @@ import ApiKeyManager from '@/components/ApiKeyManager.vue'
 import ChatMessage from '@/components/ChatMessage.vue'
 import MessageInput from '@/components/MessageInput.vue'
 import ModelResponsesDisplay from '@/components/ModelResponsesDisplay.vue'
+import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 
 const message = useMessage()
 
@@ -253,6 +273,8 @@ const messagesContainer = ref<HTMLElement>()
 const streamingResponses = ref<ModelResponse[]>([])
 const pendingUserMessage = ref('')
 const abortControllers = ref<AbortController[]>([])
+const synthesizerResponse = ref('')
+const isSynthesizing = ref(false)
 
 // Reactive state for API key detection
 const apiKeyExists = ref(!!LocalStorageManager.getApiKey())
@@ -377,7 +399,6 @@ const handleSendMessage = async (content: string, files: UploadedFile[]) => {
           
           // 자동 스크롤
           await nextTick()
-          scrollToBottom()
         }
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -391,24 +412,43 @@ const handleSendMessage = async (content: string, files: UploadedFile[]) => {
     // 모든 모델 완료 대기
     await Promise.all(promises)
 
-    // 싱크로나이저로 최종 통합
-    const synthesizer = new Synthesizer(apiKey)
-    const synthesizedContent = await synthesizer.synthesize(
-      streamingResponses.value,
-      selectedGroup.value.synthesizer,
-      content
-    )
+    // 싱크로나이저로 스트리밍 통합 시작
+    isSynthesizing.value = true
+    synthesizerResponse.value = ''
+    
+    try {
+      const synthesizer = new Synthesizer(apiKey)
+      const stream = synthesizer.synthesizeStream(
+        streamingResponses.value,
+        selectedGroup.value.synthesizer,
+        content
+      )
 
-    // 메시지 저장
-    await saveConversation(content, synthesizedContent, files)
+      for await (const chunk of stream) {
+        synthesizerResponse.value += chunk
+        
+        // 자동 스크롤
+        await nextTick()
+      }
+
+      // 메시지 저장
+      await saveConversation(content, synthesizerResponse.value, files)
+    } catch (error) {
+      console.error('Synthesizer streaming failed:', error)
+      message.error('통합 응답 생성에 실패했습니다.')
+    } finally {
+      isSynthesizing.value = false
+    }
 
   } catch (error) {
     console.error('Generation failed:', error)
     message.error('메시지 생성에 실패했습니다.')
   } finally {
     isGenerating.value = false
+    isSynthesizing.value = false
     pendingUserMessage.value = ''
     streamingResponses.value = []
+    synthesizerResponse.value = ''
     abortControllers.value = []
   }
 }
@@ -416,8 +456,10 @@ const handleSendMessage = async (content: string, files: UploadedFile[]) => {
 const handleStopGeneration = () => {
   abortControllers.value.forEach(controller => controller.abort())
   isGenerating.value = false
+  isSynthesizing.value = false
   pendingUserMessage.value = ''
   streamingResponses.value = []
+  synthesizerResponse.value = ''
   abortControllers.value = []
 }
 
@@ -667,6 +709,15 @@ onMounted(() => {
           .generating-messages {
             .user-message {
               margin-bottom: 24px;
+            }
+            
+            .synthesizer-response {
+              margin-top: 24px;
+              
+              .synthesizer-content {
+                min-height: 100px;
+                line-height: 1.6;
+              }
             }
           }
         }
