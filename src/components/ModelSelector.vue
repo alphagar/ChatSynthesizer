@@ -308,7 +308,7 @@ const handleManualSubmit = async () => {
 // Lifecycle
 onMounted(() => {
   // 컴포넌트 마운트 시 사용 가능한 모델 목록 자동 로드 (선택사항)
-  // loadAvailableModels()
+  loadAvailableModels()
 })
 </script>
 
