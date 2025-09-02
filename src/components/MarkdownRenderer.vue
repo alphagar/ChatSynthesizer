@@ -18,6 +18,42 @@ const markdownRef = ref<HTMLElement>()
 // 고유 ID 생성 함수
 const generateId = () => 'code_' + Math.random().toString(36).substr(2, 9)
 
+// 언어별 아이콘 매핑
+const getLanguageIcon = (language: string): string => {
+  const iconMap: Record<string, string> = {
+    javascript: '🟨',
+    typescript: '🔷',
+    python: '🐍',
+    java: '☕',
+    html: '🌐',
+    css: '🎨',
+    scss: '💅',
+    json: '📋',
+    xml: '📄',
+    yaml: '⚙️',
+    bash: '💻',
+    shell: '🐚',
+    powershell: '💙',
+    sql: '🗄️',
+    php: '🐘',
+    ruby: '💎',
+    go: '🐹',
+    rust: '🦀',
+    cpp: '⚡',
+    c: '🔧',
+    swift: '🍃',
+    kotlin: '🎯',
+    dart: '🎢',
+    vue: '💚',
+    react: '⚛️',
+    angular: '🅰️',
+    markdown: '📝',
+    text: '📄'
+  }
+  
+  return iconMap[language.toLowerCase()] || '⚡'
+}
+
 // marked 설정
 marked.setOptions({
   breaks: true,
@@ -33,18 +69,39 @@ renderer.code = function(token) {
   const language = lang || 'text'
   const codeId = generateId()
   const escapedText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const languageIcon = getLanguageIcon(language)
+  const lineCount = text.split('\n').length
   
   return `
-    <div class="code-block-container">
-      <div class="code-header">
-        <span class="code-language">${language}</span>
-        <button class="copy-button" onclick="copyCodeBlock('${codeId}')" title="코드 복사">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M8 5H6C5.45 5 5 5.45 5 6V18C5 18.55 5.45 19 6 19H16C16.55 19 17 18.55 17 18V16M9 1H19C19.55 1 20 1.45 20 2V14C20 14.55 19.55 15 19 15H9C8.45 15 8 14.55 8 14V2C8 1.45 8.45 1 9 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+    <div class="modern-code-container" data-language="${language}">
+      <div class="code-toolbar">
+        <div class="toolbar-left">
+          <div class="language-badge">
+            <span class="language-icon">${languageIcon}</span>
+            <span class="language-text">${language}</span>
+          </div>
+          <div class="code-info">
+            <span class="line-count">${lineCount} ${lineCount === 1 ? 'line' : 'lines'}</span>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button class="modern-copy-btn" onclick="copyCodeBlock('${codeId}')" title="코드 복사" aria-label="코드 복사">
+            <div class="btn-content">
+              <svg class="copy-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+              </svg>
+              <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20,6 9,17 4,12"/>
+              </svg>
+              <span class="btn-text">복사</span>
+            </div>
+          </button>
+        </div>
       </div>
-      <pre class="code-block"><code id="${codeId}" class="hljs language-${language}">${escapedText}</code></pre>
+      <div class="code-content-wrapper">
+        <pre class="modern-code-block"><code id="${codeId}" class="hljs language-${language}">${escapedText}</code></pre>
+      </div>
     </div>
   `
 }
@@ -71,7 +128,7 @@ declare global {
   }
 }
 
-// 복사 기능 구현
+// 복사 기능 구현 (현대화된 피드백)
 window.copyCodeBlock = async (codeId: string) => {
   try {
     const codeElement = document.getElementById(codeId)
@@ -79,20 +136,46 @@ window.copyCodeBlock = async (codeId: string) => {
       const text = codeElement.textContent || ''
       await navigator.clipboard.writeText(text)
       
-      // 복사 완료 피드백
-      const button = codeElement.closest('.code-block-container')?.querySelector('.copy-button')
+      // 현대화된 복사 완료 피드백
+      const button = codeElement.closest('.modern-code-container')?.querySelector('.modern-copy-btn')
       if (button) {
         const originalTitle = button.getAttribute('title')
+        const btnText = button.querySelector('.btn-text')
+        const copyIcon = button.querySelector('.copy-icon')
+        const checkIcon = button.querySelector('.check-icon')
+        
+        // 상태 변경
         button.setAttribute('title', '복사됨!')
         button.classList.add('copied')
+        if (btnText) btnText.textContent = '복사됨'
+        if (copyIcon) (copyIcon as HTMLElement).style.display = 'none'
+        if (checkIcon) (checkIcon as HTMLElement).style.display = 'block'
+        
+        // 원래 상태로 복원
         setTimeout(() => {
           button.setAttribute('title', originalTitle || '코드 복사')
           button.classList.remove('copied')
-        }, 2000)
+          if (btnText) btnText.textContent = '복사'
+          if (copyIcon) (copyIcon as HTMLElement).style.display = 'block'
+          if (checkIcon) (checkIcon as HTMLElement).style.display = 'none'
+        }, 2500)
       }
     }
   } catch (error) {
     console.error('복사 실패:', error)
+    
+    // 에러 피드백
+    const codeElement = document.getElementById(codeId)
+    const button = codeElement?.closest('.modern-code-container')?.querySelector('.modern-copy-btn')
+    if (button) {
+      const btnText = button.querySelector('.btn-text')
+      button.classList.add('error')
+      if (btnText) btnText.textContent = '실패'
+      setTimeout(() => {
+        button.classList.remove('error')
+        if (btnText) btnText.textContent = '복사'
+      }, 2000)
+    }
   }
 }
 
@@ -104,11 +187,17 @@ const updateContent = async () => {
     const html = await marked.parse(props.content)
     markdownRef.value.innerHTML = html
     
-    // 하이라이팅 적용
+    // 현대적인 코드 블록에 하이라이팅 적용
     await nextTick()
-    const codeElements = markdownRef.value.querySelectorAll('pre code.hljs')
+    const codeElements = markdownRef.value.querySelectorAll('.modern-code-block code.hljs')
     codeElements.forEach((element) => {
       hljs.highlightElement(element as HTMLElement)
+    })
+
+    // 코드 컨테이너에 등장 애니메이션 추가
+    const codeContainers = markdownRef.value.querySelectorAll('.modern-code-container')
+    codeContainers.forEach((container, index) => {
+      (container as HTMLElement).style.animation = `slideInUp 0.6s ease-out ${index * 0.1}s both`
     })
   } catch (error) {
     console.error('Markdown parsing error:', error)
@@ -146,107 +235,7 @@ onMounted(updateContent)
     line-height: 1.6;
   }
 
-  /* 코드 블록 컨테이너 */
-  :deep(.code-block-container) {
-    position: relative;
-    margin: 16px 0;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #1a1b26;
-    border: 1px solid #2a2b3d;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
 
-  /* 코드 헤더 */
-  :deep(.code-header) {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 16px;
-    background: #16171f;
-    border-bottom: 1px solid #2a2b3d;
-  }
-
-  /* 언어 표시 */
-  :deep(.code-language) {
-    font-size: 12px;
-    color: #7c7d8c;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-
-  /* 복사 버튼 */
-  :deep(.copy-button) {
-    background: transparent;
-    border: 1px solid #3a3b4d;
-    border-radius: 6px;
-    padding: 6px;
-    color: #7c7d8c;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  :deep(.copy-button:hover) {
-    background: #2a2b3d;
-    color: #a9b1d6;
-    border-color: #4a4b5d;
-    transform: translateY(-1px);
-  }
-
-  :deep(.copy-button.copied) {
-    background: #0f9963;
-    border-color: #0f9963;
-    color: white;
-  }
-
-  /* 코드 블록 */
-  :deep(.code-block) {
-    background: #1a1b26;
-    padding: 16px;
-    margin: 0;
-    overflow-x: auto;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Cascadia Code', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    border-radius: 0;
-    
-    code {
-      background: transparent;
-      padding: 0;
-      border-radius: 0;
-      font-size: inherit;
-      line-height: inherit;
-      color: #a9b1d6;
-    }
-  }
-
-  /* 스크롤바 커스텀 */
-  :deep(.code-block) {
-    scrollbar-width: thin;
-    scrollbar-color: #3a3b4d #1a1b26;
-  }
-
-  :deep(.code-block::-webkit-scrollbar) {
-    height: 8px;
-  }
-
-  :deep(.code-block::-webkit-scrollbar-track) {
-    background: #1a1b26;
-  }
-
-  :deep(.code-block::-webkit-scrollbar-thumb) {
-    background: #3a3b4d;
-    border-radius: 4px;
-  }
-
-  :deep(.code-block::-webkit-scrollbar-thumb:hover) {
-    background: #4a4b5d;
-  }
 
   /* 표준 코드 블록 (fallback) */
   :deep(pre:not(.code-block)) {
@@ -415,46 +404,393 @@ onMounted(updateContent)
     }
   }
 
+
+}
+</style>
+
+<!-- 동적으로 생성되는 코드 블록을 위한 전역 스타일 (스코프 제한) -->
+<style>
+.markdown-renderer {
+  /* 현대적인 코드 블록 컨테이너 */
+  .modern-code-container {
+    position: relative;
+    margin: 20px 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--card-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .modern-code-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      0 4px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 현대적인 툴바 */
+  .code-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--code-color) 0%, var(--hover-color) 100%);
+    border-bottom: 1px solid var(--divider-color);
+    backdrop-filter: blur(8px);
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+  }
+
+  /* 현대적인 언어 배지 */
+  .language-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--primary-color);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(32, 128, 240, 0.3);
+  }
+
+  .language-icon {
+    font-size: 14px;
+    animation: pulse 2s infinite;
+  }
+
+  .code-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .line-count {
+    font-size: 11px;
+    color: var(--text-color-3);
+    padding: 4px 8px;
+    background: var(--code-color);
+    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    border: 1px solid var(--border-color);
+  }
+
+  /* 현대적인 복사 버튼 */
+  .modern-copy-btn {
+    position: relative;
+    background: var(--card-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 8px 16px;
+    color: var(--text-color-2);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    min-width: 80px;
+    justify-content: center;
+  }
+
+  .modern-copy-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .modern-copy-btn:hover::before {
+    left: 100%;
+  }
+
+  .modern-copy-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(32, 128, 240, 0.3);
+  }
+
+  .modern-copy-btn.copied {
+    background: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+    transform: scale(1.05);
+  }
+
+  .modern-copy-btn.error {
+    background: var(--error-color);
+    border-color: var(--error-color);
+    color: white;
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  .btn-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .check-icon {
+    display: none;
+  }
+
+  .copy-icon, .check-icon {
+    transition: all 0.3s ease;
+  }
+
+  /* 현대적인 코드 콘텐츠 래퍼 */
+  .code-content-wrapper {
+    position: relative;
+    background: var(--code-color);
+    overflow: hidden;
+  }
+
+  /* 현대적인 코드 블록 */
+  .modern-code-block {
+    background: var(--code-color);
+    padding: 24px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Cascadia Code', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    border-radius: 0;
+    position: relative;
+  }
+  
+  .modern-code-block code {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+    line-height: inherit;
+    color: var(--text-color-1);
+    font-weight: 400;
+    font-feature-settings: 'liga' 1, 'calt' 1;
+  }
+
+  /* 현대적인 스크롤바 */
+  .modern-code-block {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color-hover) var(--code-color);
+  }
+
+  .modern-code-block::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .modern-code-block::-webkit-scrollbar-track {
+    background: var(--code-color);
+    border-radius: 3px;
+  }
+
+  .modern-code-block::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+    transition: background 0.3s ease;
+  }
+
+  .modern-code-block::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color-hover);
+  }
+
+  /* 코드 하이라이팅 향상 */
+  .modern-code-block .hljs {
+    background: transparent !important;
+    color: var(--text-color-1);
+  }
+
+  /* 현대적인 애니메이션 키프레임 */
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 현대적인 반응형 디자인 */
+  @media (max-width: 768px) {
+    .modern-code-container {
+      margin: 16px 0;
+      border-radius: 12px;
+    }
+
+    .code-toolbar {
+      padding: 10px 16px;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .toolbar-left {
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .toolbar-right {
+      justify-content: center;
+    }
+
+    .language-badge {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    .language-icon {
+      font-size: 12px;
+    }
+
+    .modern-copy-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      min-width: 70px;
+    }
+
+    .modern-code-block {
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .line-count {
+      font-size: 10px;
+      padding: 3px 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modern-code-container {
+      margin: 12px -8px;
+      border-radius: 8px;
+    }
+
+    .code-toolbar {
+      padding: 8px 12px;
+    }
+
+    .modern-code-block {
+      padding: 12px;
+      font-size: 12px;
+    }
+  }
+
   /* 접근성 개선 */
-  :deep(.copy-button:focus) {
+  .modern-copy-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(32, 128, 240, 0.2);
+  }
+
+  .modern-copy-btn:focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
   }
 
   /* 고대비 모드 지원 */
   @media (prefers-contrast: high) {
-    :deep(.code-block-container) {
+    .modern-code-container {
       border-width: 2px;
+      box-shadow: none;
     }
     
-    :deep(.copy-button) {
+    .modern-copy-btn {
       border-width: 2px;
+    }
+
+    .language-badge {
+      box-shadow: none;
+      border: 2px solid currentColor;
+    }
+  }
+
+  /* 다크모드 감지 및 추가 스타일링 */
+  @media (prefers-color-scheme: dark) {
+    .modern-code-container {
+      box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        0 1px 3px rgba(0, 0, 0, 0.2);
     }
   }
 
   /* 애니메이션 줄이기 선호 시 */
   @media (prefers-reduced-motion: reduce) {
-    :deep(.copy-button),
-    :deep(*) {
+    .modern-copy-btn,
+    .modern-code-container,
+    .language-icon,
+    * {
       transition: none !important;
       animation: none !important;
+      transform: none !important;
     }
   }
 
   /* 인쇄 스타일 */
   @media print {
-    :deep(.code-header),
-    :deep(.copy-button) {
+    .code-toolbar,
+    .modern-copy-btn {
       display: none;
     }
     
-    :deep(.code-block-container) {
-      border: 1px solid #000;
+    .modern-code-container {
+      border: 2px solid #000;
       break-inside: avoid;
+      box-shadow: none;
+      background: white !important;
     }
     
-    :deep(.code-block) {
+    .modern-code-block {
       background: white !important;
+    }
+
+    .modern-code-block code {
       color: black !important;
     }
   }
